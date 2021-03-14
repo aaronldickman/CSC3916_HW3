@@ -12,10 +12,6 @@ var jwt = require('jsonwebtoken');
 var cors = require('cors');
 var User = require('./Users');
 var Movie = require('./Movies')
-
-const VERSION = 1;
-const VERSION_DENY_MESSAGE = "This server supports API versions: 1. Version must be specified in HTTP headers under 'api_version'"
-
 var app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -25,10 +21,13 @@ app.use(passport.initialize());
 
 var router = express.Router();
 
+const SUPPORTED_VERSIONS = [1];
+const VERSION_DENY_MESSAGE = "This server supports API versions: { 1 }. Version must be specified in HTTP headers under 'api_version'"
+
 router.post('/signup', function(req, res) {
-    if(parseInt(req.headers.api_version) !== VERSION){
-        res.json({success: false, message: VERSION_DENY_MESSAGE})
-    }
+    if(!SUPPORTED_VERSIONS.includes(parseInt(req.headers.api_version)))
+        return res.json({message: VERSION_DENY_MESSAGE});
+
     if (!req.body.username || !req.body.password) {
         res.json({success: false, msg: 'Please include both username and password to signup.'})
     } else {
@@ -55,9 +54,9 @@ router.post('/signup', function(req, res) {
 });
 
 router.post('/signin', function (req, res) {
-    if(req.headers.api_version != VERSION){
-        res.json({success: false, message: VERSION_DENY_MESSAGE})
-    }
+    if(!SUPPORTED_VERSIONS.includes(parseInt(req.headers.api_version)))
+        return res.json({message: VERSION_DENY_MESSAGE});
+
     var userNew = new User();
     userNew.username = req.body.username;
     userNew.password = req.body.password;
@@ -82,9 +81,9 @@ router.post('/signin', function (req, res) {
 
 router.route('/movies/:movieName?')
     .post(authJwtController.isAuthenticated, function(req, res){
-        if(req.headers.api_version != VERSION){
-            res.json({success: false, message: VERSION_DENY_MESSAGE})
-        }
+        if(!SUPPORTED_VERSIONS.includes(parseInt(req.headers.api_version)))
+            return res.json({message: VERSION_DENY_MESSAGE});
+
         if(!req.params.movieName){
             res.statusCode = 404;
             return res.json({success: false, message: "Creating a movie must be done at path /movies/MovieName"})
@@ -116,9 +115,9 @@ router.route('/movies/:movieName?')
         })
     })
     .get(authJwtController.isAuthenticated, function(req, res){
-        if(req.headers.api_version != VERSION){
-            res.json({success: false, message: VERSION_DENY_MESSAGE})
-        }
+        if(!SUPPORTED_VERSIONS.includes(parseInt(req.headers.api_version)))
+            return res.json({message: VERSION_DENY_MESSAGE});
+
         let limit = (req.query.limit &&
                     req.query.limit > 0) ? parseInt(req.query.limit) : 10;
         let offset = (req.query.offset &&
@@ -142,9 +141,9 @@ router.route('/movies/:movieName?')
     })
 
     .put(authJwtController.isAuthenticated, function(req, res) {
-        if(req.headers.api_version != VERSION){
-            res.json({success: false, message: VERSION_DENY_MESSAGE})
-        }
+        if(!SUPPORTED_VERSIONS.includes(parseInt(req.headers.api_version)))
+            return res.json({message: VERSION_DENY_MESSAGE});
+
         if(!req.body.FieldToUpdate || !req.body.NewValue){
             res.statusCode = 400;
             return res.json({success: false, message: "PUT should have 'Title', 'FieldToUpdate', and 'NewValue' fields in body."});
@@ -201,9 +200,8 @@ router.route('/movies/:movieName?')
         })
     })
     .delete(authJwtController.isAuthenticated, function(req, res){
-        if(req.headers.api_version != VERSION){
-            res.json({success: false, message: VERSION_DENY_MESSAGE})
-        }
+        if(!SUPPORTED_VERSIONS.includes(parseInt(req.headers.api_version)))
+            return res.json({message: VERSION_DENY_MESSAGE});
 
         let filters = extractFiltersFromRequest(req);
 
