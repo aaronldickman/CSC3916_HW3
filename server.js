@@ -14,7 +14,7 @@ var User = require('./Users');
 var Movie = require('./Movies')
 
 const VERSION = 1;
-const VERSION_DENY_MESSAGE = "This server supports API versions: 1\nVersion must be specified in HTTP headers under 'api_version'"
+const VERSION_DENY_MESSAGE = "This server supports API versions: 1. Version must be specified in HTTP headers under 'api_version'"
 
 var app = express();
 app.use(cors());
