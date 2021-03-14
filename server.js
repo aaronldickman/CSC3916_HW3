@@ -26,7 +26,7 @@ app.use(passport.initialize());
 var router = express.Router();
 
 router.post('/signup', function(req, res) {
-    if(req.headers.api_version != VERSION){
+    if(parseInt(req.headers.api_version) !== VERSION){
         res.json({success: false, message: VERSION_DENY_MESSAGE})
     }
     if (!req.body.username || !req.body.password) {
